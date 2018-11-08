@@ -94,8 +94,8 @@ public class MultiRenderer {
         aTextureCoordHandle=GLES30.glGetAttribLocation(programId,"aTexCoord");
 
 
-        textures = new int[2];
-        GLES30.glGenTextures(2,textures,0);
+        textures = new int[1];
+        GLES30.glGenTextures(1,textures,0);
 
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D,textures[0]);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D,GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
@@ -103,13 +103,6 @@ public class MultiRenderer {
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
         GLUtils.texImage2D(GLES30.GL_TEXTURE_2D,0,GLES30.GL_RGBA,bitmap,0);
-
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textures[1]);
-        GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
-        GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
-        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
-        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA,frameWidth,frameHeight, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, null);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
 
         //初始化colorBuffer
@@ -120,22 +113,19 @@ public class MultiRenderer {
         //GLES30.glRenderbufferStorage(GLES30.GL_RENDERBUFFER,GLES30.GL_RGBA8,frameWidth, frameHeight);
         GLES30.glRenderbufferStorageMultisample(GLES30.GL_RENDERBUFFER,4,GLES30.GL_RGBA8,frameWidth, frameHeight);
         GLES30.glBindRenderbuffer(GLES30.GL_RENDERBUFFER, 0);
-        frameBuffers = new int[2];
-        GLES30.glGenFramebuffers(2, frameBuffers,0);
+        frameBuffers = new int[1];
+        GLES30.glGenFramebuffers(1, frameBuffers,0);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, frameBuffers[0]);
         //绑定colorBuffer
         GLES30.glFramebufferRenderbuffer(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0,GLES30.GL_RENDERBUFFER, frameColors[0]);
-        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, frameBuffers[1]);
-        //绑定纹理
-        GLES30.glFramebufferTexture2D(GLES30.GL_DRAW_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GLES30.GL_TEXTURE_2D, textures[1], 0);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
     }
 
     public void onSurfaceDestroyed(){
         GLES30.glDeleteProgram(programId);
-        GLES30.glDeleteTextures(2,textures,0);
+        GLES30.glDeleteTextures(1,textures,0);
         GLES30.glDeleteRenderbuffers(1, frameColors, 0);
-        GLES30.glDeleteFramebuffers(2, frameBuffers,0);
+        GLES30.glDeleteFramebuffers(1, frameBuffers,0);
     }
     private Rect rect = new Rect();
     public void onSurfaceChanged(int screenWidth, int screenHeight) {
@@ -177,16 +167,10 @@ public class MultiRenderer {
         GLES30.glUniform1i(uTextureSamplerHandle,0);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4);
         //将frameBuffer的图像渲染到纹理里
-        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, frameBuffers[1]);
+        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, 0);
         GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, frameBuffers[0]);
         GLES30.glBlitFramebuffer(0, 0, frameWidth, frameHeight,
                 0, 0,frameWidth, frameHeight,
-                GLES30.GL_COLOR_BUFFER_BIT, GLES30.GL_LINEAR);
-        //将纹理的图像渲染surfaceView上
-        GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, 0);
-        GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, frameBuffers[1]);
-        GLES30.glBlitFramebuffer(0, 0, frameWidth, frameHeight,
-                0, 0,screenWidth, screenHeight,
                 GLES30.GL_COLOR_BUFFER_BIT, GLES30.GL_LINEAR);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D,0);
